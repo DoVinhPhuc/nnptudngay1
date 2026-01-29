@@ -1,65 +1,76 @@
-// khai bao lop Product
-function Product(id, name, price, quantity, category, isAvailable) {
-    this.id = id;
-    this.name = name;
-    this.price = price;
-    this.quantity = quantity;
-    this.category = category;
-    this.isAvailable = isAvailable;
+let products = [];
+let filteredProducts = [];
+
+// Load dữ liệu từ db.json
+fetch("db.json")
+  .then(response => response.json())
+  .then(data => {
+    products = data;
+    filteredProducts = [...products];
+    renderTable(filteredProducts);
+  })
+  .catch(error => console.error("Lỗi load JSON:", error));
+
+
+// Render bảng
+function renderTable(list) {
+  const table = document.getElementById("productTable");
+  table.innerHTML = "";
+
+  list.forEach(p => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>
+        <img src="${p.images[0]}" alt="${p.title}" width="80">
+      </td>
+      <td>${p.title}</td>
+      <td>${p.category.name}</td>
+      <td>$${p.price}</td>
+      <td>${p.description}</td>
+    `;
+
+    table.appendChild(row);
+  });
 }
-// Khoi tao mang Product có 6 sp thuoc 2 danh muc
-const products = [
-    new Product(1, "iPhone 15 Pro Max", 38000000, 5, "iPhone", true),
-    new Product(2, "iPhone 14 Pro", 29000000, 3, "iPhone", true),
-    new Product(3, "iPhone 13", 19000000, 8, "iPhone", true),
 
-    new Product(4, "MacBook Air M2", 32000000, 4, "Computer", true),
-    new Product(5, "MacBook Pro M3", 48000000, 2, "Computer", true),
-    new Product(6, "Laptop Dell XPS 13", 35000000, 0, "Computer", false)
-];
 
-// Sử dụng phương thức map để tạo mảng mới chỉ chứa name và price của từng sản phẩm
-const nameAndPrice = products.map(p => ({
-    name: p.name,
-    price: p.price
-}));
-// Loc sp qonlity > 0
-console.log(nameAndPrice);
-const inStockProducts = products.filter(p => p.quantity > 0);
+// 🔍 Tìm kiếm theo tên (oninput)
+function searchProduct() {
+  const keyword = document.getElementById("searchInput").value.toLowerCase();
 
-console.log(inStockProducts);
-// Kiểm tra giá Pri > 30tr
-const hasExpensiveProduct = products.some(p => p.price > 30000000);
+  filteredProducts = products.filter(p =>
+    p.title.toLowerCase().includes(keyword)
+  );
 
-console.log(hasExpensiveProduct);
-// Kiểm tra tất cả sp trong danh mục Accessories có isAvailable = true
-const accessoriesAvailable = products
-    .filter(p => p.category === "Accessories")
-    .every(p => p.isAvailable === true);
-
-console.log(accessoriesAvailable);
-//Tính tổng giá trị kho hàng
-const totalInventoryValue = products.reduce(
-    (total, p) => total + p.price * p.quantity,
-    0
-);
-
-console.log(totalInventoryValue);
-//Dùng for of in duyệt mảng và in ra thông tin sản phẩm
-for (const p of products) {
-    console.log(
-        `${p.name} - ${p.category} - ${p.isAvailable ? "Đang bán" : "Ngừng bán"}`
-    );
+  renderTable(filteredProducts);
 }
-//Dùng for in in tên thuộc tính và giá trị tương ứng
-for (const key in products[0]) {
-    console.log(`${key}: ${products[0][key]}`);
+
+
+// 🔤 Sắp xếp tên A → Z
+function sortNameAsc() {
+  filteredProducts.sort((a, b) =>
+    a.title.localeCompare(b.title)
+  );
+  renderTable(filteredProducts);
 }
-//Lấy danh sách tên sản phẩm đang bán và còn hàng
-const sellingAndInStockNames = products
-    .filter(p => p.isAvailable && p.quantity > 0)
-    .map(p => p.name);
 
-console.log(sellingAndInStockNames);
+// 🔤 Sắp xếp tên Z → A
+function sortNameDesc() {
+  filteredProducts.sort((a, b) =>
+    b.title.localeCompare(a.title)
+  );
+  renderTable(filteredProducts);
+}
 
+// 💰 Giá tăng
+function sortPriceAsc() {
+  filteredProducts.sort((a, b) => a.price - b.price);
+  renderTable(filteredProducts);
+}
 
+// 💰 Giá giảm
+function sortPriceDesc() {
+  filteredProducts.sort((a, b) => b.price - a.price);
+  renderTable(filteredProducts);
+}
